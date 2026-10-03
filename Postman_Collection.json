@@ -1,0 +1,277 @@
+{
+  "info": {
+    "name": "Micro-Loan Application Tracking System API",
+    "_postman_id": "8b9a1012-789a-4c45-8123-microloan2026",
+    "description": "Comprehensive Postman/Thunder Client Collection for Micro-Loan Application Tracking System with 2-Tier Approval Workflow (Member -> Branch Manager -> Head Office Admin)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5001/api",
+      "type": "string"
+    },
+    {
+      "key": "userToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "subadminToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "adminToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "loanId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Register Member",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Rahul Deshmukh\",\n  \"email\": \"rahul@gmail.com\",\n  \"password\": \"user123\",\n  \"phone\": \"+91 99887 66554\",\n  \"branch\": \"Downtown Mumbai Branch\",\n  \"savingsBalance\": 50000\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth", "register"] }
+          }
+        },
+        {
+          "name": "Login (Member / Subadmin / Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@microloan.com\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+          }
+        },
+        {
+          "name": "Get Current Profile (Me)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{userToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/auth/me", "host": ["{{baseUrl}}"], "path": ["auth", "me"] }
+          }
+        },
+        {
+          "name": "Update / Deposit Savings Balance",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{userToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 15000,\n  \"action\": \"deposit\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/savings", "host": ["{{baseUrl}}"], "path": ["auth", "savings"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Member Loans",
+      "item": [
+        {
+          "name": "Apply for Loan (with Multer upload)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{userToken}}" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "requestedAmount", "value": "60000", "type": "text" },
+                { "key": "tenureMonths", "value": "12", "type": "text" },
+                { "key": "loanPurpose", "value": "Small Grocery Expansion", "type": "text" },
+                { "key": "branch", "value": "Downtown Mumbai Branch", "type": "text" },
+                { "key": "idProof", "type": "file", "src": "" },
+                { "key": "incomeProof", "type": "file", "src": "" },
+                { "key": "bankStatement", "type": "file", "src": "" }
+              ]
+            },
+            "url": { "raw": "{{baseUrl}}/loans/apply", "host": ["{{baseUrl}}"], "path": ["loans", "apply"] }
+          }
+        },
+        {
+          "name": "Get My Loan Applications",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{userToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/loans/my-applications", "host": ["{{baseUrl}}"], "path": ["loans", "my-applications"] }
+          }
+        },
+        {
+          "name": "Get Single Loan Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{userToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/loans/{{loanId}}", "host": ["{{baseUrl}}"], "path": ["loans", "{{loanId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Subadmin (Branch Manager) Desk",
+      "item": [
+        {
+          "name": "Get Branch Pending Loans Queue",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{subadminToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/loans/branch-review?status=submitted", "host": ["{{baseUrl}}"], "path": ["loans", "branch-review"], "query": [{ "key": "status", "value": "submitted" }] }
+          }
+        },
+        {
+          "name": "Branch Manager Document Verification & Approval",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{subadminToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"approve\",\n  \"remarks\": \"Physical KYC and income proofs verified at branch. Approved and escalated to Head Office.\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/loans/{{loanId}}/subadmin-review", "host": ["{{baseUrl}}"], "path": ["loans", "{{loanId}}", "subadmin-review"] }
+          }
+        },
+        {
+          "name": "Branch Manager Rejection",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{subadminToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"reject\",\n  \"remarks\": \"Income proof mismatch. Rejected at branch level.\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/loans/{{loanId}}/subadmin-review", "host": ["{{baseUrl}}"], "path": ["loans", "{{loanId}}", "subadmin-review"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Admin (Head Office) Operations",
+      "item": [
+        {
+          "name": "Get Dashboard Overview Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/admin/stats", "host": ["{{baseUrl}}"], "path": ["admin", "stats"] }
+          }
+        },
+        {
+          "name": "Get All Loans Across Branches",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/loans/all?status=subadmin_approved", "host": ["{{baseUrl}}"], "path": ["loans", "all"], "query": [{ "key": "status", "value": "subadmin_approved" }] }
+          }
+        },
+        {
+          "name": "Head Branch Final Sanction & Disbursal",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"approve\",\n  \"remarks\": \"Final approval granted. Funds sanctioned for immediate bank credit.\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/loans/{{loanId}}/admin-review", "host": ["{{baseUrl}}"], "path": ["loans", "{{loanId}}", "admin-review"] }
+          }
+        },
+        {
+          "name": "Head Branch Final Rejection",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"reject\",\n  \"remarks\": \"High credit risk. Rejected by Head Office.\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/loans/{{loanId}}/admin-review", "host": ["{{baseUrl}}"], "path": ["loans", "{{loanId}}", "admin-review"] }
+          }
+        },
+        {
+          "name": "List All Subadmins",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/admin/subadmins", "host": ["{{baseUrl}}"], "path": ["admin", "subadmins"] }
+          }
+        },
+        {
+          "name": "Create / Authorize New Subadmin",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Priya Verma\",\n  \"email\": \"priya.branch@microloan.com\",\n  \"password\": \"subadmin123\",\n  \"branch\": \"Downtown Mumbai Branch\",\n  \"phone\": \"+91 98111 22334\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/admin/subadmins", "host": ["{{baseUrl}}"], "path": ["admin", "subadmins"] }
+          }
+        },
+        {
+          "name": "Toggle Subadmin Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/admin/subadmins/{{subadminId}}/toggle-status", "host": ["{{baseUrl}}"], "path": ["admin", "subadmins", "{{subadminId}}", "toggle-status"] }
+          }
+        }
+      ]
+    }
+  ]
+}
