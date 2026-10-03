@@ -31,6 +31,16 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/loans', require('./routes/loanRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
 
+// Root greeting endpoint
+app.get('/', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: '🚀 Micro-Loan Application Tracking System API is running live!',
+    version: '1.0.0',
+    documentation: '/api/health',
+  });
+});
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.status(200).json({
